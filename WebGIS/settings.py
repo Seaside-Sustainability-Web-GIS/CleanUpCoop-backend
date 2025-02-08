@@ -32,6 +32,17 @@ DEBUG = os.getenv('DEBUG')
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS=['http://127.0.0.1:8000']
 
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # ✅ Store sessions in the database
+SESSION_COOKIE_NAME = "sessionid"  # ✅ Default Django session cookie name
+SESSION_COOKIE_HTTPONLY = False  # ✅ Allows JavaScript to read sessionid if needed
+SESSION_COOKIE_SAMESITE = "Lax"  # ✅ Ensures session cookies work across requests
+SESSION_COOKIE_SECURE = False  # ✅ Only enable this in production with HTTPS
+
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = "Lax"
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -57,6 +68,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 ROOT_URLCONF = 'WebGIS.urls'
