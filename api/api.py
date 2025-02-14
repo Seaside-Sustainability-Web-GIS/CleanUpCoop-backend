@@ -39,9 +39,9 @@ def login_view(request, payload: schemas.SignInSchema):
         return JsonResponse({"success": False, "message": "Invalid email or password"}, status=401)
 
     login(request, user)
-    request.session.save()  # ✅ Ensure session is saved
+    request.session.save()
 
-    return JsonResponse({
+    response = JsonResponse({
         "success": True,
         "user": {
             "username": user.username,
@@ -49,22 +49,22 @@ def login_view(request, payload: schemas.SignInSchema):
         }
     })
 
+    response["Access-Control-Allow-Credentials"] = "true"
+    return response
+
 
 # Logout and clear session cookies
 @api.post("/logout", auth=django_auth)
 def logout_view(request):
 
-    if request.auth:
-        logout(request)
-        request.session.flush()
+    logout(request)
+    request.session.flush()
 
-        response = JsonResponse({"message": "Logged out successfully"})
-        response.delete_cookie("sessionid")
-        response.delete_cookie("csrftoken")
+    response = JsonResponse({"message": "Logged out successfully"})
+    response.delete_cookie("sessionid")
+    response.delete_cookie("csrftoken")
 
-        return response
-
-    return JsonResponse({"detail": "Unauthorized"}, status=401)
+    return response
 
 
 # Get logged-in user details
