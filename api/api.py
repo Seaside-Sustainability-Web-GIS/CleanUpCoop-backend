@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 from ninja import NinjaAPI
 from ninja.security import django_auth
 from django.contrib.auth import authenticate, login, logout
@@ -118,6 +119,7 @@ def register(request, payload: RegisterSchema):
 
 # Forgot Password endpoint
 @api.post("/forgot-password")
+@csrf_exempt
 def forgot_password(request, payload: schemas.ForgotPasswordSchema):
     try:
         user = User.objects.get(email=payload.email)
@@ -129,13 +131,13 @@ def forgot_password(request, payload: schemas.ForgotPasswordSchema):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
 
     # Build the reset password URL.
-    reset_link = f"http://localhost:8000/api/reset-password?uid={uid}&token={token}"
+    reset_link = f"http://localhost:5713/WebGIS-React/reset-password?uid={uid}&token={token}"
 
     # Send the password reset email (ensure your email backend is configured).
     send_mail(
         subject="Password Reset Request",
         message=f"Click the following link to reset your password:\n\n{reset_link}",
-        from_email="noreply@example.com",
+        from_email="trash@seasidesustainability.org",
         recipient_list=[user.email],
         fail_silently=False,
     )
