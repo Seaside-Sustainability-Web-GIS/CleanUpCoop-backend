@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 from ninja import NinjaAPI
 from ninja.security import django_auth
 from django.contrib.auth import authenticate, login, logout
@@ -10,6 +11,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
+
+from .schemas import RegisterSchema, LoginSchema
 
 api = NinjaAPI(csrf=True)  # Enable CSRF protection
 
@@ -33,8 +36,9 @@ def get_csrf_token(request):
 
 # User login with session authentication
 @api.post("/login")
-def login_view(request, payload: schemas.SignInSchema):
-    user = authenticate(request, email=payload.email, password=payload.password)
+def login(request, payload: schemas.LoginSchema):
+    user = authenticate(request, username=payload.email, password=payload.password)
+
     if user is None:
         return JsonResponse({"success": False, "message": "Invalid email or password"}, status=401)
 
@@ -86,8 +90,12 @@ def user(request):
 
 # Register new users safely
 @api.post("/register")
-def register(request, payload: schemas.SignInSchema):
-    user, created = User.objects.get_or_create(username=payload.email, email=payload.email)
+def register(request, payload: RegisterSchema):
+    user, created = User.objects.get_or_create(
+        username=payload.email,
+        email=payload.email,
+        defaults={"first_name": payload.first_name, "last_name": payload.last_name}
+    )
 
     if not created:
         return {"error": "User already exists"}
@@ -95,11 +103,23 @@ def register(request, payload: schemas.SignInSchema):
     user.set_password(payload.password)
     user.save()
 
-    return {"success": "User registered successfully"}
+    # Send confirmation email
+    subject = "Welcome to Our Platform"
+    message = f"Hello {payload.first_name},\n\nThank you for registering. Your account has been successfully created."
+    # from_email = "example@email.com" #TODO
+    recipient_list = [payload.email]
+
+    try:
+        send_mail(subject, message, from_email, recipient_list)
+    except Exception as e:
+        return {"success": "User registered successfully, but email could not be sent.", "error": str(e)}
+
+    return {"success": "User registered successfully. A confirmation email has been sent."}
 
 
 # Forgot Password endpoint
 @api.post("/forgot-password")
+@csrf_exempt
 def forgot_password(request, payload: schemas.ForgotPasswordSchema):
     try:
         user = User.objects.get(email=payload.email)
@@ -111,13 +131,13 @@ def forgot_password(request, payload: schemas.ForgotPasswordSchema):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
 
     # Build the reset password URL.
-    reset_link = f"http://localhost:8000/api/reset-password?uid={uid}&token={token}"
+    reset_link = f"http://localhost:5713/WebGIS-React/reset-password?uid={uid}&token={token}"
 
     # Send the password reset email (ensure your email backend is configured).
     send_mail(
         subject="Password Reset Request",
         message=f"Click the following link to reset your password:\n\n{reset_link}",
-        from_email="noreply@example.com",
+        from_email="trash@seasidesustainability.org",
         recipient_list=[user.email],
         fail_silently=False,
     )

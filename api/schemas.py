@@ -1,12 +1,18 @@
-from pydantic import BaseModel
 from ninja import Schema
+from pydantic import EmailStr
 
-class SignInSchema(BaseModel):
-    email: str
+class RegisterSchema(Schema):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    password: str
+
+class LoginSchema(Schema):
+    email: EmailStr
     password: str
 
 class ForgotPasswordSchema(Schema):
-    email: str
+    email: EmailStr
 
 class ResetPasswordSchema(Schema):
     uid: str
