@@ -9,7 +9,7 @@ services:
     plan: free
     name: WebGIS-Django
     runtime: python
-    buildCommand: "./build.sh"
+    buildCommand: "./scripts/build.sh"
     startCommand: "python -m gunicorn WebGIS.asgi:application -k uvicorn.workers.UvicornWorker"
     envVars:
       - key: DATABASE_URL
