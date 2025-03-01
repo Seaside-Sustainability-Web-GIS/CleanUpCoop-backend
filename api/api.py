@@ -34,12 +34,14 @@ def get_csrf_token(request):
     return response
 
 
-# User login with session authentication
 @api.post("/login")
 def login(request, payload: schemas.LoginSchema):
-    user = authenticate(request, username=payload.email, password=payload.password)
+    try:
+        user = User.objects.get(email__iexact=payload.email)
+    except User.DoesNotExist:
+        return JsonResponse({"success": False, "message": "Invalid email or password"}, status=401)
 
-    if user is None:
+    if not user.check_password(payload.password):
         return JsonResponse({"success": False, "message": "Invalid email or password"}, status=401)
 
     login(request, user)
@@ -52,13 +54,12 @@ def login(request, payload: schemas.LoginSchema):
             "email": user.email
         }
     })
-
     response["Access-Control-Allow-Credentials"] = "true"
     return response
 
 
 # Logout and clear session cookies
-@api.post("/logout", auth=django_auth)
+@api.post("/logout")
 def logout_view(request):
 
     logout(request)
@@ -77,28 +78,36 @@ def user(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "Not authenticated"}, status=401)
 
-    secret_fact = (
-        "The moment one gives close attention to any thing, even a blade of grass",
-        "it becomes a mysterious, awesome, indescribably magnificent world in itself."
-    )
     return {
         "username": request.user.username,
         "email": request.user.email,
-        "secret_fact": secret_fact
     }
 
 
 # Register new users safely
 @api.post("/register")
 def register(request, payload: RegisterSchema):
-    user, created = User.objects.get_or_create(
-        username=payload.email,
-        email=payload.email,
-        defaults={"first_name": payload.first_name, "last_name": payload.last_name}
-    )
+    email = payload.email.lower()
 
-    if not created:
-        return {"error": "User already exists"}
+    # Check if user already exists
+    user_exists = User.objects.filter(email=email).exists()
+    if user_exists:
+        return JsonResponse(
+            {
+                "error": "This email is already registered. Please log in instead or reset your password if needed."
+            },
+            status=400
+        )
+
+    # Create new user
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={
+            "username": email,
+            "first_name": payload.first_name,
+            "last_name": payload.last_name,
+        }
+    )
 
     user.set_password(payload.password)
     user.save()
@@ -106,7 +115,7 @@ def register(request, payload: RegisterSchema):
     # Send confirmation email
     subject = "Welcome to Our Platform"
     message = f"Hello {payload.first_name},\n\nThank you for registering. Your account has been successfully created."
-    # from_email = "example@email.com" #TODO
+    from_email = "trash@seasidesustainability.org" #TODO
     recipient_list = [payload.email]
 
     try:
