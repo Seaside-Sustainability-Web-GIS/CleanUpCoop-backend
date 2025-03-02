@@ -1,7 +1,7 @@
 databases:
-  - name: WebGIS-Django
-    plan: free
-    databaseName: WebGIS
+  - name: WebGIS-Database
+    plan: starter
+    databaseName: geoninja
     user: brad
 
 services:
@@ -10,13 +10,16 @@ services:
     name: WebGIS-Django
     runtime: python
     buildCommand: "./scripts/build.sh"
-    startCommand: "python -m gunicorn WebGIS.asgi:application -k uvicorn.workers.UvicornWorker"
+    startCommand: |
+      python manage.py migrate &&
+      python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute('CREATE EXTENSION IF NOT EXISTS postgis;')" &&
+      python -m gunicorn WebGIS.asgi:application -k uvicorn.workers.UvicornWorker
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: geoninja
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: WEB_CONCURRENCY
-        value: 4
+    - key: DATABASE_URL
+      fromDatabase:
+        name: WebGIS-Database
+        property: connectionString
+    - key: SECRET_KEY
+      generateValue: true
+    - key: WEB_CONCURRENCY
+      value: 4

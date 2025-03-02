@@ -100,8 +100,7 @@ WSGI_APPLICATION = 'WebGIS.wsgi.application'
 
 if not DEBUG:
     DATABASES = {
-        'default': dj_database_url.config(default='postgres://postgres:postgres@localhost:5432/postgres')
-    }
+        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))    }
 else:
     DATABASES = {
         'default': {
