@@ -71,7 +71,7 @@ def get_user(request):
                              user={"username": request.user.username, "email": request.user.email})
 
 
-@api.post("/register", tags=["Authentication"], description="Register a new user.")
+@api.api_operation(["POST", "OPTIONS"], "/register", tags=["Authentication"], description="Register a new user.")
 def register_user(request, payload: RegisterSchema):
     """Creates a new user account."""
     email = payload.email.lower()
