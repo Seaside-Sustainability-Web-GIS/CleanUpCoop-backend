@@ -10,7 +10,6 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 
 from .models import CustomUser as User
-from . import schemas
 from .schemas import RegisterSchema, LoginSchema, ForgotPasswordSchema, ResetPasswordSchema
 
 # Initialize API with CSRF protection
@@ -35,7 +34,7 @@ def get_csrf_token(request):
     return response
 
 
-@api.post("/login", tags=["Authentication"], description="Authenticate and log in a user.")
+@api.api_operation(["POST", "OPTIONS"],"/login", tags=["Authentication"], description="Authenticate and log in a user.")
 def login_user(request, payload: LoginSchema):
     """Logs in a user with valid email and password."""
     try:
@@ -51,7 +50,7 @@ def login_user(request, payload: LoginSchema):
     return generate_response(True, "Login successful", user={"username": user.username, "email": user.email})
 
 
-@api.post("/logout", tags=["Authentication"], description="Log out the current user.")
+@api.api_operation(["POST", "OPTIONS"], "/logout", tags=["Authentication"], description="Log out the current user.")
 def logout_user(request):
     """Logs out the authenticated user and clears session cookies."""
     logout(request)
@@ -95,7 +94,7 @@ def register_user(request, payload: RegisterSchema):
     return generate_response(True, "User registered successfully. A confirmation email has been sent.")
 
 
-@api.post("/forgot-password", tags=["Password Reset"], description="Send a password reset email.")
+@api.api_operation(["POST", "OPTIONS"], "/forgot-password", tags=["Password Reset"], description="Send a password reset email.")
 @csrf_exempt
 def forgot_password(request, payload: ForgotPasswordSchema):
     """Sends an email with a password reset link if the email exists in the system."""
@@ -118,7 +117,7 @@ def forgot_password(request, payload: ForgotPasswordSchema):
     return generate_response(True, "If the email is registered, a password reset email has been sent.")
 
 
-@api.post("/reset-password", tags=["Password Reset"], description="Reset a user's password using a token.")
+@api.api_operation(["POST", "OPTIONS"], "/reset-password", tags=["Password Reset"], description="Reset a user's password using a token.")
 def reset_password(request, payload: ResetPasswordSchema):
     """Allows users to reset their password with a valid token."""
     try:
