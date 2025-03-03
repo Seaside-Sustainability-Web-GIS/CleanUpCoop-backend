@@ -30,7 +30,6 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
 
 SESSION_ENGINE = "django.contrib.sessions.backends.db"  # ✅ Store sessions in the database
 SESSION_COOKIE_NAME = "sessionid"  # ✅ Default Django session cookie name
