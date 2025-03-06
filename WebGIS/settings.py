@@ -159,7 +159,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = "https://webgis-react.onrender.com/"
+CORS_ALLOWED_ORIGINS = ["https://webgis-react.onrender.com/"]
 CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
 CORS_ALLOW_HEADERS = ["*"]
 
