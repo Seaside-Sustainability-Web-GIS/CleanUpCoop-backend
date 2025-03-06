@@ -39,7 +39,6 @@ def get_csrf_token(request):
     )
     return response
 
-@csrf_exempt
 @api.post("/login", tags=["Authentication"], description="Authenticate and log in a user.")
 def login_user(request, payload: LoginSchema):
     """Logs in a user with valid email and password."""
@@ -54,7 +53,6 @@ def login_user(request, payload: LoginSchema):
     login(request, user)
     request.session.save()
     return generate_response(True, "Login successful", user={"username": user.username, "email": user.email})
-
 
 
 @api.api_operation(["POST", "OPTIONS"], "/logout", tags=["Authentication"], description="Log out the current user.")
