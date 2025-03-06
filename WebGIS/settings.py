@@ -161,7 +161,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = ["https://webgis-react.onrender.com"]
 CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
-CORS_ALLOW_HEADERS = ["*"]
+CORS_ALLOW_HEADERS = [
+    "Content-Type",
+    "Authorization",
+    "X-CSRFToken"
+]
 
 # Custom user model
 AUTH_USER_MODEL = 'api.CustomUser'
