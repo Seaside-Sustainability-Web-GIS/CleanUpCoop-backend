@@ -11,11 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from dotenv import load_dotenv
 import os
 import dj_database_url
-
-load_dotenv('.env.local')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,18 +21,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = "django-insecure-!*cfx01__p*%p^iem9r+#yk3!w(v$jq=o)=1fx(i9hwd^xb^(g"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-SESSION_ENGINE = "django.contrib.sessions.backends.db"  # ✅ Store sessions in the database
-SESSION_COOKIE_NAME = "sessionid"  # ✅ Default Django session cookie name
-SESSION_COOKIE_HTTPONLY = False  # ✅ Allows JavaScript to read sessionid if needed
-SESSION_COOKIE_SAMESITE = "Lax"  # ✅ Ensures session cookies work across requests
-SESSION_COOKIE_SECURE = False  # ✅ Only enable this in production with HTTPS
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_NAME = "sessionid"
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = False
 
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
@@ -97,20 +94,20 @@ WSGI_APPLICATION = 'WebGIS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if not DEBUG:
-    DATABASES = {
-        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': os.getenv('POSTGRES_ENGINE'),
-            'NAME': os.getenv('POSTGRES_DB'),
-            'USER': os.getenv('POSTGRES_USER'),
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-            'HOST': os.getenv('POSTGRES_HOST'),
-            'PORT': os.getenv('POSTGRES_PORT'),
-        }
-    }
+# if not DEBUG:
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))    }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': os.getenv('POSTGRES_ENGINE'),
+#             'NAME': os.getenv('POSTGRES_DB'),
+#             'USER': os.getenv('POSTGRES_USER'),
+#             'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+#             'HOST': os.getenv('POSTGRES_HOST'),
+#             'PORT': os.getenv('POSTGRES_PORT'),
+#         }
+#     }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -162,9 +159,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS').split(',')
+CORS_ALLOWED_ORIGINS = "https://webgis-react.onrender.com/"
 CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
-CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = ["*"]
 
 # Custom user model
