@@ -33,7 +33,7 @@ def get_csrf_token(request):
     response.set_cookie("csrftoken", csrf_token, httponly=False, secure=False, samesite="Lax")
     return response
 
-
+@csrf_exempt
 @api.post("/login", tags=["Authentication"], description="Authenticate and log in a user.")
 def login_user(request, payload: LoginSchema):
     """Logs in a user with valid email and password."""
