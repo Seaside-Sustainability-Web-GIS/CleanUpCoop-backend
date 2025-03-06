@@ -29,8 +29,14 @@ def generate_response(success: bool, message: str, status: int = 200, **kwargs):
 def get_csrf_token(request):
     """Retrieve and set CSRF token for frontend security."""
     csrf_token = get_token(request)
-    response = generate_response(True, "CSRF token set successfully.", csrftoken=csrf_token)
-    response.set_cookie("csrftoken", csrf_token, httponly=False, secure=False, samesite="Lax")
+    response = JsonResponse({"success": True, "message": "CSRF token set.", "csrftoken": csrf_token})
+    response.set_cookie(
+        key="csrftoken",
+        value=csrf_token,
+        httponly=False,  # Frontend can access it
+        secure=True,  # Ensures it works on HTTPS (Required for Render)
+        samesite="Lax"  # Allows requests from the frontend
+    )
     return response
 
 @csrf_exempt
