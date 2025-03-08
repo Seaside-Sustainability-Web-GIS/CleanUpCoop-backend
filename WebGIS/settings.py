@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Ensure this is at the top
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -159,12 +159,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
+# Temporarily allow all origins for debugging
 CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = ["https://webgis-react.onrender.com"]
 CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
 CORS_ALLOW_HEADERS = [
     "Content-Type",
     "Authorization",
-    "X-CSRFToken",
+    "X-CSRFToken"
 ]
 
 # Custom user model
