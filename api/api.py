@@ -39,6 +39,7 @@ def get_csrf_token(request):
     )
     return response
 
+
 @api.post("/login", tags=["Authentication"], description="Authenticate and log in a user.")
 def login_user(request, payload: LoginSchema):
     """Logs in a user with valid email and password."""
@@ -55,7 +56,7 @@ def login_user(request, payload: LoginSchema):
     return generate_response(True, "Login successful", user={"username": user.username, "email": user.email})
 
 
-@api.api_operation(["POST", "OPTIONS"], "/logout", tags=["Authentication"], description="Log out the current user.")
+@api.post("/logout", tags=["Authentication"], description="Log out the current user.")
 def logout_user(request):
     """Logs out the authenticated user and clears session cookies."""
     logout(request)
@@ -71,17 +72,15 @@ def get_user(request):
     """Retrieve information about the logged-in user."""
     if not request.user.is_authenticated:
         return generate_response(False, "Not authenticated", status=401)
-    return generate_response(True, "User details retrieved",
-                             user={"username": request.user.username, "email": request.user.email})
+    return generate_response(True, "User details retrieved", user={"username": request.user.username, "email": request.user.email})
 
 
-@api.api_operation(["POST", "OPTIONS"], "/register", tags=["Authentication"], description="Register a new user.")
+@api.post("/register", tags=["Authentication"], description="Register a new user.")
 def register_user(request, payload: RegisterSchema):
     """Creates a new user account."""
     email = payload.email.lower()
     if User.objects.filter(email=email).exists():
-        return generate_response(False, "This email is already registered. Please log in or reset your password.",
-                                 status=400)
+        return generate_response(False, "This email is already registered. Please log in or reset your password.", status=400)
 
     user = User.objects.create_user(
         email=email,
@@ -99,8 +98,7 @@ def register_user(request, payload: RegisterSchema):
     return generate_response(True, "User registered successfully. A confirmation email has been sent.")
 
 
-@api.api_operation(["POST", "OPTIONS"], "/forgot-password", tags=["Password Reset"], description="Send a password reset email.")
-@csrf_exempt
+@api.post("/forgot-password", tags=["Password Reset"], description="Send a password reset email.")
 def forgot_password(request, payload: ForgotPasswordSchema):
     """Sends an email with a password reset link if the email exists in the system."""
     try:
@@ -122,7 +120,7 @@ def forgot_password(request, payload: ForgotPasswordSchema):
     return generate_response(True, "If the email is registered, a password reset email has been sent.")
 
 
-@api.api_operation(["POST", "OPTIONS"], "/reset-password", tags=["Password Reset"], description="Reset a user's password using a token.")
+@api.post("/reset-password", tags=["Password Reset"], description="Reset a user's password using a token.")
 def reset_password(request, payload: ResetPasswordSchema):
     """Allows users to reset their password with a valid token."""
     try:
