@@ -21,17 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-!*cfx01__p*%p^iem9r+#yk3!w(v$jq=o)=1fx(i9hwd^xb^(g"
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
 # Session settings
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_NAME = "sessionid"
-SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = True
 
@@ -40,7 +40,7 @@ CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
+CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"] # Add your frontend URL here
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
@@ -51,8 +51,14 @@ CORS_ALLOW_HEADERS = [
     "X-CSRFToken"
 ]
 
-# Application definition
+# Deployment Security settings
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,7 +73,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # Ensure this is at the top
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -106,21 +112,21 @@ WSGI_APPLICATION = 'WebGIS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# if not DEBUG:
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+if not DEBUG:
+    DATABASES = {
+        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
-# else:
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': os.getenv('POSTGRES_ENGINE'),
-#             'NAME': os.getenv('POSTGRES_DB'),
-#             'USER': os.getenv('POSTGRES_USER'),
-#             'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-#             'HOST': os.getenv('POSTGRES_HOST'),
-#             'PORT': os.getenv('POSTGRES_PORT'),
-#         }
-#     }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv('POSTGRES_ENGINE'),
+            'NAME': os.getenv('POSTGRES_DB'),
+            'USER': os.getenv('POSTGRES_USER'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+            'HOST': os.getenv('POSTGRES_HOST'),
+            'PORT': os.getenv('POSTGRES_PORT'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -156,9 +162,9 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-# if not DEBUG:
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
 # Media files
 MEDIA_URL = '/media/'
@@ -177,6 +183,6 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER').strip()
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER").strip()
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD').strip()
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER').strip()
