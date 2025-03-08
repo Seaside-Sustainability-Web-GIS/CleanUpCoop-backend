@@ -1,7 +1,6 @@
-from django.views.decorators.csrf import csrf_exempt
 from ninja import NinjaAPI
 from ninja.security import django_auth
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.contrib.auth.tokens import default_token_generator

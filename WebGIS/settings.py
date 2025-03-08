@@ -55,14 +55,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Ensure this is at the top
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django.middleware.common.CommonMiddleware",
 ]
@@ -96,7 +96,8 @@ WSGI_APPLICATION = 'WebGIS.wsgi.application'
 
 # if not DEBUG:
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))    }
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+}
 # else:
 #     DATABASES = {
 #         'default': {
@@ -126,7 +127,6 @@ AUTH_PASSWORD_VALIDATORS = [
     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
 },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -159,7 +159,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
+# Temporarily allow all origins for debugging
 CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = ["https://webgis-react.onrender.com"]
 CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
 CORS_ALLOW_HEADERS = [
     "Content-Type",
