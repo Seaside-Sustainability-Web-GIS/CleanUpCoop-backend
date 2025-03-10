@@ -31,9 +31,9 @@ def get_csrf_token(request):
     response.set_cookie(
         key="csrftoken",
         value=csrf_token,
-        httponly=False,  # Frontend can access it
-        secure=True,  # Ensures it works on HTTPS (Required for Render)
-        samesite="Lax"  # Allows requests from the frontend
+        httponly=False,
+        secure=True,
+        samesite="Lax"
     )
     return response
 
@@ -101,7 +101,7 @@ def forgot_password(request, payload: ForgotPasswordSchema):
 
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    reset_link = f"https://yourfrontend.com/reset-password?uid={uid}&token={token}"
+    reset_link = f"https://webgis-react.onrender.com/reset-password?uid={uid}&token={token}" #WebGIS-React is the frontend URL
 
     send_mail(
         subject="Password Reset Request",
