@@ -112,8 +112,9 @@ def forgot_password(request, payload: ForgotPasswordSchema):
     )
     return generate_response(True, "If the email is registered, a password reset email has been sent.")
 
+
+@api.post("/reset-password", auth=None, tags=["Password Reset"], description="Reset a user's password using a token.")
 @csrf_exempt
-@api.post("/reset-password", tags=["Password Reset"], description="Reset a user's password using a token.")
 def reset_password(request, payload: ResetPasswordSchema):
     """Allows users to reset their password with a valid token."""
     try:
