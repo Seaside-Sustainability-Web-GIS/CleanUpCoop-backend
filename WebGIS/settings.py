@@ -39,14 +39,13 @@ SESSION_COOKIE_SECURE = True
 
 # CSRF settings
 CSRF_COOKIE_NAME = "csrftoken"
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = ["https://webgis-react.onrender.com"]
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://webgis-react.onrender.com",
 ]
