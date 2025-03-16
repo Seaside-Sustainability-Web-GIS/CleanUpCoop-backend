@@ -43,7 +43,7 @@ CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"] # Add your frontend URL here
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]  # Add your frontend URL here
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
@@ -55,14 +55,15 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # Deployment Security settings
-SECURE_SSL_REDIRECT = False
-SECURE_HSTS_SECONDS = 0
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
-SECURE_PROXY_SSL_HEADER = None
+# SECURE_SSL_REDIRECT = False
+# SECURE_HSTS_SECONDS = 0
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+# SECURE_HSTS_PRELOAD = False
+# SECURE_PROXY_SSL_HEADER = None
 
 # Application definition
 INSTALLED_APPS = [
+    # Django built-in apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,9 +71,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'django.contrib.sites',
+
+    # Third-party apps
     'corsheaders',
-    'api',
     'ninja',
+
+    # Django Allauth
+    'allauth.headless',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    # Your custom apps
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -85,11 +96,28 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
+
+# Django Allauth settings
+SITE_ID = 1
+HEADLESS_ONLY = True
+
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username', 'first_name', 'last_name', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "http://localhost:5173/WebGIS-React/verify-email/{key}",
+    "account_reset_password_from_key": "http://localhost:5173/WebGIS-React/reset-password/key/{key}",
+    "account_signup": "http://localhost:5173/WebGIS-React",
+}
 
 ROOT_URLCONF = 'WebGIS.urls'
 
@@ -129,18 +157,18 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-{
-    'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-},
-{
-    'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-},
-{
-    'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-},
-{
-    'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 # Internationalization
