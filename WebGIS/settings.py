@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'ninja',
 
     # Django Allauth
+    'allauth',
     'allauth.headless',
     'allauth.account',
     'allauth.socialaccount',
@@ -107,6 +108,7 @@ AUTHENTICATION_BACKENDS = [
 # Django Allauth settings
 SITE_ID = 1
 HEADLESS_ONLY = True
+HEADLESS_SERVE_SPECIFICATION = True
 
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username', 'first_name', 'last_name', 'password1*', 'password2*']
@@ -117,6 +119,7 @@ HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": "http://localhost:5173/WebGIS-React/verify-email/{key}",
     "account_reset_password_from_key": "http://localhost:5173/WebGIS-React/reset-password/key/{key}",
     "account_signup": "http://localhost:5173/WebGIS-React",
+    "account_reset_password": "http://localhost:5173/WebGIS-React/reset-password",
 }
 
 ROOT_URLCONF = 'WebGIS.urls'
@@ -209,3 +212,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+
