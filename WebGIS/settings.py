@@ -43,7 +43,7 @@ CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]  # Add your frontend URL here
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
@@ -51,7 +51,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = [
     "Content-Type",
     "Authorization",
-    "X-CSRFToken"
+    "X-CSRFToken",
+    'x-session-token'
 ]
 
 # Deployment Security settings
@@ -212,4 +213,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
-
