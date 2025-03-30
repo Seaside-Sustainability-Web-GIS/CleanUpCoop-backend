@@ -111,7 +111,6 @@ HEADLESS_FRONTEND_URLS = {
     "account_confirm_email": "http://localhost:5173/WebGIS-React/verify-email/{key}",
     "account_reset_password_from_key": "http://localhost:5173/WebGIS-React/reset-password/key/{key}",
     "account_signup": "http://localhost:5173/WebGIS-React",
-    "account_reset_password": "http://localhost:5173/WebGIS-React/reset-password",
 }
 
 ROOT_URLCONF = 'WebGIS.urls'
