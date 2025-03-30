@@ -115,9 +115,9 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "http://localhost:5173/WebGIS-React/verify-email/{key}",
-    "account_reset_password_from_key": "http://localhost:5173/WebGIS-React/reset-password/key/{key}",
-    "account_signup": "http://localhost:5173/WebGIS-React",
+    "account_confirm_email": "https://webgis-react.onrender.com/verify-email/{key}",
+    "account_reset_password_from_key": "https://webgis-react.onrender.com//reset-password/key/{key}",
+    "account_signup": "https://webgis-react.onrender.com/",
 }
 
 ROOT_URLCONF = 'WebGIS.urls'
