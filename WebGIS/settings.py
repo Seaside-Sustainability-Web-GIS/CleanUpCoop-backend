@@ -38,20 +38,12 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = False
 
-# CSRF settings
-CSRF_COOKIE_NAME = "csrftoken"
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
-
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = [
     "Content-Type",
     "Authorization",
-    "X-CSRFToken",
     'x-session-token'
 ]
 
@@ -94,7 +86,6 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
