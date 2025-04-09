@@ -4,7 +4,8 @@ from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
 from .models import AdoptedArea
-from .schemas import AdoptAreaInput
+from .schemas import AdoptAreaInput, AdoptAreaLayer
+from typing import List
 
 User = get_user_model()
 
@@ -47,3 +48,20 @@ def adopt_area(request, data: AdoptAreaInput):
     except Exception as e:
         return JsonResponse({"success": False, "message": f"Failed to save area: {str(e)}"}, status=500)
 
+
+@api.get("/adopted-area-layer/", response=List[AdoptAreaLayer], tags=["Adopt Area"])
+def list_adopted_areas(request):
+    return [
+        AdoptAreaLayer(
+            id=area.id,
+            first_name=area.first_name,
+            last_name=area.last_name,
+            lat=area.lat,
+            lng=area.lng,
+            city=area.city,
+            state=area.state,
+            country=area.country,
+            note=area.note
+        )
+        for area in AdoptedArea.objects.all()
+    ]
