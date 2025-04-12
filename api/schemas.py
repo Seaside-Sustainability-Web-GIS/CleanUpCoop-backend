@@ -2,8 +2,8 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class AdoptAreaInput(BaseModel):
-    first_name: str = Field(..., max_length=100)
-    last_name: str = Field(..., max_length=100)
+    area_name: str = Field(..., max_length=100)
+    adoptee_name: str = Field(..., max_length=100)
     email: EmailStr
     note: str = Field('', max_length=500)
     lat: float
@@ -15,8 +15,9 @@ class AdoptAreaInput(BaseModel):
 
 class AdoptAreaLayer(BaseModel):
     id: int
-    first_name: str
-    last_name: str
+    area_name: str
+    adoptee_name: str
+    email: EmailStr
     lat: float
     lng: float
     city: str

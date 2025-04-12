@@ -54,8 +54,9 @@ def list_adopted_areas(request):
     return [
         AdoptAreaLayer(
             id=area.id,
-            first_name=area.first_name,
-            last_name=area.last_name,
+            area_name=area.area_name,
+            adoptee_name=area.adoptee_name,
+            email=area.email,
             lat=area.lat,
             lng=area.lng,
             city=area.city,

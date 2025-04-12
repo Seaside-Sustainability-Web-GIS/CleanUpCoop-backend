@@ -30,8 +30,8 @@ class AdoptedArea(models.Model):
         on_delete=models.CASCADE,
         related_name="adopted_areas"
     )
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    area_name = models.CharField(max_length=100)
+    adoptee_name = models.CharField(max_length=100)
     email = models.EmailField()
     note = models.TextField(blank=True)
     lat = models.FloatField()
