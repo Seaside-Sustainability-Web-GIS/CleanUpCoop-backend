@@ -64,5 +64,5 @@ def list_adopted_areas(request):
             country=area.country,
             note=area.note
         )
-        for area in AdoptedArea.objects.all()
+        for area in AdoptedArea.objects.filter(is_active=True)
     ]
