@@ -30,9 +30,16 @@ class AdoptedArea(models.Model):
         on_delete=models.CASCADE,
         related_name="adopted_areas"
     )
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    area_name = models.CharField(max_length=100)
+    adoptee_name = models.CharField(max_length=100)
     email = models.EmailField()
+    adoption_type = models.CharField(
+        max_length=20,
+        choices=[("indefinite", "Indefinite"), ("temporary", "Temporary")],
+        default="indefinite"
+    )
+    end_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
     note = models.TextField(blank=True)
     lat = models.FloatField()
     lng = models.FloatField()
