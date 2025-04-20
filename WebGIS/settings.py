@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['localhost']  # Add your production domain here
+ALLOWED_HOSTS = ['seaside-backend-oh06.onrender.com']  # Add your production domain here
 
 # Session settings
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
@@ -41,7 +41,7 @@ SESSION_COOKIE_SECURE = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "https://seaside-frontend.onrender.com",
 ]
 CORS_ALLOW_HEADERS = [
     "Content-Type",
@@ -114,9 +114,9 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "http://localhost:5173/verify-email/{key}",
-    "account_reset_password_from_key": "http://localhost:5173/reset-password/key/{key}",
-    "account_signup": "http://localhost:5173/",
+    "account_confirm_email": "https://seaside-frontend.onrender.com/verify-email/{key}",
+    "account_reset_password_from_key": "https://seaside-frontend.onrender.com/reset-password/key/{key}",
+    "account_signup": "https://seaside-frontend.onrender.com/",
 }
 
 ROOT_URLCONF = 'WebGIS.urls'

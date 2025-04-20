@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
