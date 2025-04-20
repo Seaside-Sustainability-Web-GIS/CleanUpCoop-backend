@@ -1,6 +1,6 @@
 from datetime import date
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class AdoptAreaInput(BaseModel):
@@ -15,6 +15,10 @@ class AdoptAreaInput(BaseModel):
     city: str
     state: str
     country: str
+
+    @field_validator("end_date", mode="before")
+    def blank_string_to_none(cls, v):
+        return None if v in ("", None) else v
 
 
 class AdoptAreaLayer(BaseModel):
