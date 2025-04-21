@@ -94,6 +94,5 @@ class AdoptedAreaAdmin(admin.ModelAdmin):
     def coords(self, obj):
         return f"{obj.lat:.5f}, {obj.lng:.5f}"
 
-admin.site.register(AdoptedArea, AdoptedAreaAdmin)
 admin.site.register(CustomUser, CustomUserAdmin)
 
