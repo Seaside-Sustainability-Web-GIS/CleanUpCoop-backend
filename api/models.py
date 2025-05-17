@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.gis.db import models as gis_models
-from django.contrib.gis.geos import Point
 
 
 class CustomUserManager(UserManager):
@@ -43,7 +42,7 @@ class AdoptedArea(models.Model):
     end_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     note = models.TextField(blank=True)
-    location = Point(-90.123, 38.567)
+    location = gis_models.PointField()
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
