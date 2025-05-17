@@ -1,10 +1,11 @@
+import functools
 from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
-from .models import AdoptedArea
-from .schemas import AdoptAreaInput, AdoptAreaLayer
+from .models import AdoptedArea, Team
+from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut
 from typing import List
 
 User = get_user_model()
@@ -14,6 +15,23 @@ api = NinjaAPI(
     title="Seaside Sustainability WebGIS API",
     description="Endpoints for user authentication, registration, and password management."
 )
+
+
+def require_auth(view_func):
+    @functools.wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        session_token = request.headers.get("X-Session-Token")
+        user = get_user_from_token(session_token)
+        if not user:
+            return JsonResponse({"success": False, "message": "Not authenticated"}, status=401)
+        request.user = user
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def require_team_leader(user, team):
+    if user not in team.leaders.all():
+        return JsonResponse({"success": False, "message": "Only team leaders can perform this action"}, status=403)
 
 
 # -------------------- Helper: Resolve user from session token --------------------
@@ -49,13 +67,8 @@ def get_user_from_token(token):
 
 # -------------------- ADOPT AREA --------------------
 @api.post("/adopt-area/", tags=["Adopt Area"])
+@require_auth
 def adopt_area(request, data: AdoptAreaInput):
-    session_token = request.headers.get("X-Session-Token")
-    user = get_user_from_token(session_token)
-
-    if not user:
-        return JsonResponse({"success": False, "message": "Not authenticated"}, status=401)
-
     try:
         AdoptedArea.objects.create(user=user, **data.model_dump())
         return JsonResponse({"success": True, "message": "Area adopted successfully!"}, status=201)
@@ -71,8 +84,7 @@ def list_adopted_areas(request):
             area_name=area.area_name,
             adoptee_name=area.adoptee_name,
             email=area.email,
-            lat=area.lat,
-            lng=area.lng,
+            location=area.location,
             city=area.city,
             state=area.state,
             country=area.country,
@@ -83,15 +95,10 @@ def list_adopted_areas(request):
 
 
 @api.put("/adopt-area/{area_id}/", tags=["Adopt Area"])
+@require_auth
 def update_adopted_area(request, area_id: int, data: AdoptAreaInput):
-    session_token = request.headers.get("X-Session-Token")
-    user = get_user_from_token(session_token)
-
-    if not user:
-        return JsonResponse({"success": False, "message": "Not authenticated"}, status=401)
-
     try:
-        area = AdoptedArea.objects.get(id=area_id, user=user)
+        area = AdoptedArea.objects.get(id=area_id, user=request.user)
     except AdoptedArea.DoesNotExist:
         return JsonResponse({"success": False, "message": "Adopted area not found"}, status=404)
 
@@ -103,22 +110,83 @@ def update_adopted_area(request, area_id: int, data: AdoptAreaInput):
 
 
 @api.delete("/adopt-area/{area_id}/", tags=["Adopt Area"])
+@require_auth
 def delete_adopted_area(request, area_id: int):
-    # Get session token from header
-    session_token = request.headers.get("X-Session-Token")
-    print(f"Received X-Session-Token: {session_token}")
-
-    # Debug the headers to see what's coming through
-    print(f"All headers: {dict(request.headers)}")
-
-    user = get_user_from_token(session_token)
-
-    if not user:
-        return JsonResponse({"success": False, "message": "Not authenticated"}, status=401)
-
     try:
         area = AdoptedArea.objects.get(id=area_id, user=user)
         area.delete()
         return JsonResponse({"success": True, "message": "Adopted area deleted successfully!"})
     except AdoptedArea.DoesNotExist:
         return JsonResponse({"success": False, "message": "Adopted area not found"}, status=404)
+
+    # -------------------- TEAMS --------------------
+
+
+@api.get("/teams/", response=List[TeamOut], tags=["Teams"])
+def list_teams(request):
+    return Team.objects.all()
+
+
+@api.get("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
+def get_team(request, team_id: int):
+    team = get_object_or_404(Team, id=team_id)
+    return team
+
+
+@api.put("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
+@require_auth
+def update_team(request, team_id: int, payload: TeamCreate):
+    team = get_object_or_404(Team, id=team_id)
+
+    permission_check = require_team_leader(request.user, team)
+    if permission_check:
+        return permission_check  # Returns JsonResponse with 403
+
+    team.name = payload.name
+    team.description = payload.description
+    team.headquarters = payload.headquarters
+    team.save()
+    return team
+
+
+@api.delete("/teams/{team_id}/", tags=["Teams"])
+@require_auth
+def delete_team(request, team_id: int):
+    team = get_object_or_404(Team, id=team_id)
+
+    permission_check = require_team_leader(request.user, team)
+    if permission_check:
+        return permission_check
+
+    team.delete()
+    return JsonResponse({"success": True, "message": "Team deleted successfully"})
+
+@api.post("/teams/", response=TeamOut, tags=["Teams"])
+@require_auth
+def create_team(request, payload: TeamCreate):
+
+    team = Team.objects.create(
+        name=payload.name,
+        description=payload.description,
+        headquarters=payload.headquarters
+    )
+    team.leaders.add(request.user)
+    team.members.add(request.user)
+    return team
+
+
+@api.post("/teams/{team_id}/join", tags=["Teams"])
+@require_auth
+def join_team(request, team_id: int):
+    team = get_object_or_404(Team, id=team_id)
+    team.members.add(request.user)
+    return {"success": True}
+
+
+@api.post("/teams/{team_id}/leave", tags=["Teams"])
+@require_auth
+def leave_team(request, team_id: int):
+    team = get_object_or_404(Team, id=team_id)
+    team.members.remove(request.user)
+    team.leaders.remove(request.user)
+    return {"success": True}
