@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, List, Literal
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from geojson_pydantic import Point
 
@@ -28,7 +28,7 @@ class AdoptAreaLayer(BaseModel):
     area_name: str
     adoptee_name: str
     email: EmailStr
-    location: Point
+    location: Dict[str, Any]
     city: str
     state: str
     country: str

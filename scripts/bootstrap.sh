@@ -36,12 +36,73 @@ EOF
 
 echo ".env file created."
 
+echo "📝 Creating render.yaml..."
+
+cat > render.yaml <<EOF
+# render.yaml
+services:
+  # ────────────────────────── Frontend ──────────────────────────
+  - name: your-frontend-name
+    type: web
+    runtime: static
+    repo: https://github.com/YOUR_USERNAME/YOUR_REPO
+    branch: deploy
+    autoDeploy: true
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: true
+    healthCheckPath: /
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ────────────────────────── Backend ───────────────────────────
+  - name: your-backend-name
+    type: web
+    plan: starter
+    env: python
+    region: ohio
+    repo: https://github.com/YOUR_USERNAME/YOUR_REPO
+    branch: deploy
+    autoDeploy: true
+    buildCommand: |
+      pip install -r requirements.txt &&
+      python manage.py collectstatic --no-input
+    startCommand: |
+      python manage.py migrate --no-input &&
+      gunicorn WebGIS.asgi:application -k uvicorn.workers.UvicornWorker
+
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+
+  # ────────────────────────── Cron Job ───────────────────────────
+  - name: project cron job
+    type: cron
+    schedule: "0 4 * * *"  # every day at 4AM UTC
+    env: python
+    repo: https://github.com/YOUR_USERNAME/YOUR_REPO
+    branch: deploy
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py cleanup_expired_adoptions
+
+databases:
+  - name: your-db-name
+    plan: basic-256mb
+    region: ohio
+    databaseName: yourdbname
+EOF
+
+echo "✅ render.yaml created. Don't forget to replace placeholders with your actual values."
+
+
 # Optional: create common folder layout
 echo "📁 Creating project structure..."
 
-mkdir -p apps static media logs
+mkdir -p static media logs
 
-echo "Project folders created: apps/, static/, media/, logs/"
+echo "Project folders created: static/, media/, logs/"
 
 
 echo "🔧 Installing PostgreSQL and PostGIS..."

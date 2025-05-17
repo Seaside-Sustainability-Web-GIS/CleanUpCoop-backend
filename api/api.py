@@ -28,6 +28,7 @@ def require_auth(view_func):
             return JsonResponse({"success": False, "message": "Not authenticated"}, status=401)
         request.user = user
         return view_func(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -97,21 +98,30 @@ def adopt_area(request, data: AdoptAreaInput):
 
 
 @api.get("/adopted-area-layer/", response=List[AdoptAreaLayer], tags=["Adopt Area"])
-def list_adopted_areas():
-    return [
-        AdoptAreaLayer(
-            id=area.id,
-            area_name=area.area_name,
-            adoptee_name=area.adoptee_name,
-            email=area.email,
-            location=area.location,
-            city=area.city,
-            state=area.state,
-            country=area.country,
-            note=area.note
+def list_adopted_areas(request):
+    try:
+        return [
+            AdoptAreaLayer(
+                id=area.id,
+                area_name=area.area_name,
+                adoptee_name=area.adoptee_name,
+                email=area.email,
+                location={
+                    "type": "Point",
+                    "coordinates": [area.location.x, area.location.y]
+                },
+                city=area.city,
+                state=area.state,
+                country=area.country,
+                note=area.note
+            )
+            for area in AdoptedArea.objects.filter(is_active=True)
+        ]
+    except Exception as e:
+        return JsonResponse(
+            {"success": False, "message": f"Error fetching adopted areas: {str(e)}"},
+            status=500
         )
-        for area in AdoptedArea.objects.filter(is_active=True)
-    ]
 
 
 @api.put("/adopt-area/{area_id}/", tags=["Adopt Area"])
@@ -181,10 +191,10 @@ def delete_team(request, team_id: int):
     team.delete()
     return JsonResponse({"success": True, "message": "Team deleted successfully"})
 
+
 @api.post("/teams/", response=TeamOut, tags=["Teams"])
 @require_auth
 def create_team(request, payload: TeamCreate):
-
     team = Team.objects.create(
         name=payload.name,
         description=payload.description,
