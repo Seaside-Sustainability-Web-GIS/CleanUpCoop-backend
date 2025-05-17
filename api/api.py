@@ -1,4 +1,6 @@
 import functools
+
+from django.contrib.gis.geos import Point
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
@@ -70,14 +72,32 @@ def get_user_from_token(token):
 @require_auth
 def adopt_area(request, data: AdoptAreaInput):
     try:
-        AdoptedArea.objects.create(user=user, **data.model_dump())
+        area_data = data.model_dump()
+
+        # Make sure 'location' is a dict and has 'coordinates'
+        location_data = area_data.get("location")
+        if not isinstance(location_data, dict) or "coordinates" not in location_data:
+            return JsonResponse({"success": False, "message": "Invalid location format"}, status=400)
+
+        coordinates = location_data["coordinates"]
+        if not isinstance(coordinates, (list, tuple)) or len(coordinates) != 2:
+            return JsonResponse({"success": False, "message": "Coordinates must be [lng, lat]"}, status=400)
+
+        # Convert to GEOS Point
+        area_data["location"] = Point(float(coordinates[0]), float(coordinates[1]))
+        area_data["user"] = request.user
+
+        # Save to DB
+        AdoptedArea.objects.create(**area_data)
+
         return JsonResponse({"success": True, "message": "Area adopted successfully!"}, status=201)
+
     except Exception as e:
         return JsonResponse({"success": False, "message": f"Failed to save area: {str(e)}"}, status=500)
 
 
 @api.get("/adopted-area-layer/", response=List[AdoptAreaLayer], tags=["Adopt Area"])
-def list_adopted_areas(request):
+def list_adopted_areas():
     return [
         AdoptAreaLayer(
             id=area.id,
@@ -113,7 +133,7 @@ def update_adopted_area(request, area_id: int, data: AdoptAreaInput):
 @require_auth
 def delete_adopted_area(request, area_id: int):
     try:
-        area = AdoptedArea.objects.get(id=area_id, user=user)
+        area = AdoptedArea.objects.get(id=area_id, user=request.user)
         area.delete()
         return JsonResponse({"success": True, "message": "Adopted area deleted successfully!"})
     except AdoptedArea.DoesNotExist:
@@ -123,12 +143,12 @@ def delete_adopted_area(request, area_id: int):
 
 
 @api.get("/teams/", response=List[TeamOut], tags=["Teams"])
-def list_teams(request):
+def list_teams():
     return Team.objects.all()
 
 
 @api.get("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
-def get_team(request, team_id: int):
+def get_team(team_id: int):
     team = get_object_or_404(Team, id=team_id)
     return team
 
