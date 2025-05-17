@@ -66,10 +66,18 @@ GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 \connect ${DB_NAME}
 CREATE EXTENSION IF NOT EXISTS postgis;
 EOF
+echo "PostgreSQL user and database created."
 
-echo "🐍 Setting up Python virtual environment..."
-python3 -m venv $PYTHON_VENV
-source $PYTHON_VENV/bin/activate
+echo "🔧 Installing Python and pip..."
+if [ -z "$VIRTUAL_ENV" ]; then
+  echo "🐍 Setting up Python virtual environment..."
+  python3 -m venv $PYTHON_VENV
+  source $PYTHON_VENV/bin/activate
+else
+  echo "⚠️ Already in a virtual environment: $VIRTUAL_ENV"
+fi
+
+echo "📦 Installing Python dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
