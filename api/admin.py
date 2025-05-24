@@ -95,4 +95,3 @@ class AdoptedAreaAdmin(admin.ModelAdmin):
         return f"{obj.lat:.5f}, {obj.lng:.5f}"
 
 admin.site.register(CustomUser, CustomUserAdmin)
-
