@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, AdoptedArea
+# from django.contrib.gis.admin import OSMGeoAdmin
 
 
 class CustomUserAdmin(UserAdmin):
@@ -77,7 +78,7 @@ class AdoptedAreaAdmin(admin.ModelAdmin):
                 'city',
                 'state',
                 'country',
-                ('lat', 'lng'),   # put lat/lng side‑by‑side
+                'location',
             ),
             'classes': ('collapse',),
         }),
@@ -92,6 +93,8 @@ class AdoptedAreaAdmin(admin.ModelAdmin):
 
     @admin.display(description='Coordinates')
     def coords(self, obj):
-        return f"{obj.lat:.5f}, {obj.lng:.5f}"
+        if obj.location:
+            return f"{obj.location.y:.5f}, {obj.location.x:.5f}"  # lat = y, lng = x in GEOS
+        return "N/A"
 
 admin.site.register(CustomUser, CustomUserAdmin)
