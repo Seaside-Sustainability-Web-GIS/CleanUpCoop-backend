@@ -92,7 +92,7 @@ def adopt_area(request, data: AdoptAreaInput):
             area_data["location"] = Point(lng, lat)
         except ValueError:
             return JsonResponse({"success": False, "message": "Coordinates must be valid numbers"}, status=400)
-        
+
         area_data["user"] = request.user
 
         # Save to DB
