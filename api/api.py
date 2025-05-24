@@ -85,7 +85,13 @@ def adopt_area(request, data: AdoptAreaInput):
             return JsonResponse({"success": False, "message": "Coordinates must be [lng, lat]"}, status=400)
 
         # Convert to GEOS Point
-        area_data["location"] = Point(float(coordinates[0]), float(coordinates[1]))
+        try:
+            lng = float(coordinates[0])
+            lat = float(coordinates[1])
+            area_data["location"] = Point(lng, lat)
+        except ValueError:
+            return JsonResponse({"success": False, "message": "Coordinates must be valid numbers"}, status=400)
+        
         area_data["user"] = request.user
 
         # Save to DB
