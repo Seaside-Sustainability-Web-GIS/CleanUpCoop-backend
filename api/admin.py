@@ -97,5 +97,4 @@ class AdoptedAreaAdmin(admin.ModelAdmin):
             return f"{obj.location.y:.5f}, {obj.location.x:.5f}"  # lat = y, lng = x in GEOS
         return "N/A"
 
-
 admin.site.register(CustomUser, CustomUserAdmin)
