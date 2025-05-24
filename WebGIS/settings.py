@@ -142,7 +142,10 @@ WSGI_APPLICATION = 'WebGIS.wsgi.application'
 
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': {
+        **dj_database_url.config(default=os.getenv('DATABASE_URL')),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    }
 }
 
 # Password validation
