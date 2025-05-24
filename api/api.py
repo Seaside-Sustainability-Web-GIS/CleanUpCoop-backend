@@ -1,6 +1,7 @@
 import functools
 
 from django.contrib.gis.geos import Point
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
@@ -33,8 +34,8 @@ def require_auth(view_func):
 
 
 def require_team_leader(user, team):
-    if user not in team.leaders.all():
-        return JsonResponse({"success": False, "message": "Only team leaders can perform this action"}, status=403)
+    if team.leader != user:
+        raise PermissionDenied("You are not the leader of this team.")
 
 
 # -------------------- Helper: Resolve user from session token --------------------
