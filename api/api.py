@@ -1,14 +1,15 @@
 import functools
 
 from django.contrib.gis.geos import Point
-from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
+from ninja.errors import HttpError
+
 from .models import AdoptedArea, Team
-from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut
+from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut, LeaderRequest
 from typing import List
 
 User = get_user_model()
@@ -16,7 +17,7 @@ User = get_user_model()
 api = NinjaAPI(
     csrf=False,
     title="Seaside Sustainability WebGIS API",
-    description="Endpoints for user authentication, registration, and password management."
+    description="API for managing adopted areas and teams in the Seaside Sustainability WebGIS application.",
 )
 
 
@@ -34,8 +35,8 @@ def require_auth(view_func):
 
 
 def require_team_leader(user, team):
-    if team.leader != user:
-        raise PermissionDenied("You are not the leader of this team.")
+    if user not in team.leaders.all():
+        return JsonResponse({"success": False, "message": "You are not a team leader"}, status=403)
 
 
 # -------------------- Helper: Resolve user from session token --------------------
@@ -105,7 +106,7 @@ def adopt_area(request, data: AdoptAreaInput):
 
 
 @api.get("/adopted-area-layer/", response=List[AdoptAreaLayer], tags=["Adopt Area"])
-def list_adopted_areas(request):
+def list_adopted_areas():
     try:
         return [
             AdoptAreaLayer(
@@ -207,8 +208,9 @@ def create_team(request, payload: TeamCreate):
         description=payload.description,
         headquarters=payload.headquarters
     )
-    team.leaders.add(request.user)
     team.members.add(request.user)
+    team.leaders.add(request.user)
+
     return team
 
 
@@ -227,3 +229,46 @@ def leave_team(request, team_id: int):
     team.members.remove(request.user)
     team.leaders.remove(request.user)
     return {"success": True}
+
+
+def is_team_leader(user, team: Team):
+    return user in team.leaders.all()
+
+
+@api.post("/teams/{team_id}/add_leader/", tags=["Teams"])
+@require_auth
+def add_leader(request, team_id: int, payload: LeaderRequest):
+    team = get_object_or_404(Team, id=team_id)
+
+    if not is_team_leader(request.user, team):
+        raise HttpError(403, "Only team leaders can add other leaders.")
+
+    if team.leaders.count() >= 5:
+        raise HttpError(400, "Maximum number of team leaders reached.")
+
+    user = get_object_or_404(User, id=payload.user_id)
+
+    if user not in team.members.all():
+        raise HttpError(400, "User must be a team member before becoming a leader.")
+
+    team.leaders.add(user)
+    return {"success": True, "message": f"{user.username} is now a team leader."}
+
+
+@api.post("/teams/{team_id}/remove_leader/", tags=["Teams"])
+def remove_leader(request, team_id: int, payload: LeaderRequest):
+    team = get_object_or_404(Team, id=team_id)
+
+    if not is_team_leader(request.user, team):
+        raise HttpError(403, "Only team leaders can remove leaders.")
+
+    user = get_object_or_404(User, id=payload.user_id)
+
+    if user not in team.leaders.all():
+        raise HttpError(400, "User is not a leader.")
+
+    if team.leaders.count() == 1:
+        raise HttpError(400, "Cannot remove the last remaining team leader.")
+
+    team.leaders.remove(user)
+    return {"success": True, "message": f"{user.username} is no longer a team leader."}

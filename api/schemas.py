@@ -1,5 +1,7 @@
 from datetime import date
 from typing import Optional, List, Dict, Any
+
+from ninja import Schema
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from geojson_pydantic import Point
 
@@ -50,3 +52,7 @@ class TeamOut(BaseModel):
     headquarters: Point
     leader_ids: List[int]
     member_ids: List[int]
+
+# 🔹 Used to request a user to become a team leader
+class LeaderRequest(Schema):
+    user_id: int
