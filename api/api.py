@@ -106,7 +106,7 @@ def adopt_area(request, data: AdoptAreaInput):
 
 
 @api.get("/adopted-area-layer/", response=List[AdoptAreaLayer], tags=["Adopt Area"])
-def list_adopted_areas():
+def list_adopted_areas(request):
     try:
         return [
             AdoptAreaLayer(
