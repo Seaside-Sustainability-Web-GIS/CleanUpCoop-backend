@@ -85,7 +85,6 @@ def adopt_area(request, data: AdoptAreaInput):
         if not isinstance(coordinates, (list, tuple)) or len(coordinates) != 2:
             return JsonResponse({"success": False, "message": "Coordinates must be [lng, lat]"}, status=400)
 
-        # Convert to GEOS Point
         try:
             lng = float(coordinates[0])
             lat = float(coordinates[1])
@@ -202,10 +201,11 @@ def delete_team(request, team_id: int):
 @api.post("/teams/", response=TeamOut, tags=["Teams"])
 @require_auth
 def create_team(request, payload: TeamCreate):
+    lng, lat = payload.headquarters.coordinates
     team = Team.objects.create(
         name=payload.name,
         description=payload.description,
-        headquarters=payload.headquarters
+        headquarters=Point(lng, lat)
     )
     team.leaders.add(request.user)
     team.members.add(request.user)
