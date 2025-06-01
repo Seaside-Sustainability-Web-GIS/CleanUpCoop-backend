@@ -1,6 +1,7 @@
 import functools
-
-from django.contrib.gis.geos import Point
+import json
+from geojson_pydantic import Point
+from django.contrib.gis.geos import GEOSGeometry
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
@@ -161,14 +162,34 @@ def delete_adopted_area(request, area_id: int):
 
 
 @api.get("/teams/", response=List[TeamOut], tags=["Teams"])
-def list_teams():
-    return Team.objects.all()
+def list_teams(request):
+    return [
+        TeamOut(
+            id=team.id,
+            name=team.name,
+            description=team.description,
+            headquarters=Point(**json.loads(team.headquarters.geojson)),
+            city=team.city,
+            state=team.state,
+            country=team.country,
+        )
+        for team in Team.objects.all()
+    ]
 
 
 @api.get("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
-def get_team(team_id: int):
+def get_team(request, team_id: int):
     team = get_object_or_404(Team, id=team_id)
-    return team
+    return TeamOut(
+        id=team.id,
+        name=team.name,
+        description=team.description,
+        headquarters=Point(**json.loads(team.headquarters.geojson)),
+        city=team.city,
+        state=team.state,
+        country=team.country,
+    )
+
 
 
 @api.put("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
@@ -203,14 +224,19 @@ def delete_team(request, team_id: int):
 @api.post("/teams/", response=TeamOut, tags=["Teams"])
 @require_auth
 def create_team(request, payload: TeamCreate):
+    geojson = payload.headquarters
+    django_point = GEOSGeometry(json.dumps(geojson))
+
     team = Team.objects.create(
         name=payload.name,
         description=payload.description,
-        headquarters=payload.headquarters
+        headquarters=django_point,
+        city=payload.city,
+        state=payload.state,
+        country=payload.country
     )
     team.members.add(request.user)
     team.leaders.add(request.user)
-
     return team
 
 

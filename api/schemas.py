@@ -1,8 +1,9 @@
+import json
 from datetime import date
 from typing import Optional, List, Dict, Any
 
 from ninja import Schema
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, field_serializer
 from geojson_pydantic import Point
 
 
@@ -30,7 +31,7 @@ class AdoptAreaLayer(BaseModel):
     area_name: str
     adoptee_name: str
     email: EmailStr
-    location: Dict[str, Any]
+    location: Point
     city: str
     state: str
     country: str
@@ -38,20 +39,23 @@ class AdoptAreaLayer(BaseModel):
 
 
 # 🔹 Used to create a team
-class TeamCreate(BaseModel):
+class TeamCreate(Schema):
     name: str
     description: str
-    headquarters: Point
+    headquarters: dict  # GeoJSON Point
+    city: str = ""
+    state: str = ""
+    country: str = ""
 
-
-# 🔹 Used to return team details
 class TeamOut(BaseModel):
     id: int
     name: str
     description: str
     headquarters: Point
-    leader_ids: List[int]
-    member_ids: List[int]
+    city: str
+    state: str
+    country: str
+
 
 # 🔹 Used to request a user to become a team leader
 class LeaderRequest(Schema):
