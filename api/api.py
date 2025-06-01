@@ -172,6 +172,8 @@ def list_teams(request):
             city=team.city,
             state=team.state,
             country=team.country,
+            member_ids=list(team.members.values_list("id", flat=True)),
+            leader_ids=list(team.leaders.values_list("id", flat=True)),
         )
         for team in Team.objects.all()
     ]
@@ -189,7 +191,6 @@ def get_team(request, team_id: int):
         state=team.state,
         country=team.country,
     )
-
 
 
 @api.put("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
@@ -237,7 +238,17 @@ def create_team(request, payload: TeamCreate):
     )
     team.members.add(request.user)
     team.leaders.add(request.user)
-    return team
+    return TeamOut(
+        id=team.id,
+        name=team.name,
+        description=team.description,
+        headquarters=json.loads(team.headquarters.geojson),
+        city=team.city,
+        state=team.state,
+        country=team.country,
+        member_ids=list(team.members.values_list("id", flat=True)),
+        leader_ids=list(team.leaders.values_list("id", flat=True)),
+    )
 
 
 @api.post("/teams/{team_id}/join", tags=["Teams"])

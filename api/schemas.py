@@ -1,9 +1,7 @@
-import json
 from datetime import date
-from typing import Optional, List, Dict, Any
-
+from typing import Optional, List
 from ninja import Schema
-from pydantic import BaseModel, EmailStr, Field, field_validator, field_serializer
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from geojson_pydantic import Point
 
 
@@ -55,6 +53,8 @@ class TeamOut(BaseModel):
     city: str
     state: str
     country: str
+    member_ids: List[int]
+    leader_ids: List[int]
 
 
 # 🔹 Used to request a user to become a team leader
