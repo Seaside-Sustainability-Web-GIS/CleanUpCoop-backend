@@ -17,9 +17,17 @@ class AdoptAreaInput(BaseModel):
     state: str
     country: str
 
-    @field_validator("end_date", mode="before")
-    def blank_string_to_none(cls, v):
-        return None if v in ("", None) else v
+    @field_validator("location")
+    def validate_location_coordinates(cls, v: Point):
+        coords = v.coordinates
+        if not isinstance(coords, (list, tuple)) or len(coords) != 2:
+            raise ValueError("Coordinates must be a [lng, lat] pair")
+        lng, lat = coords
+        if lng is None or lat is None:
+            raise ValueError("Coordinates cannot be null")
+        if not all(isinstance(c, (float, int)) for c in coords):
+            raise ValueError("Coordinates must be numbers")
+        return v
 
 
 # 🔹 Used to display adopted areas on the map

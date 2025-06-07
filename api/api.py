@@ -86,7 +86,6 @@ def adopt_area(request, data: AdoptAreaInput):
         if not isinstance(coordinates, (list, tuple)) or len(coordinates) != 2:
             return JsonResponse({"success": False, "message": "Coordinates must be [lng, lat]"}, status=400)
 
-        # Convert to GEOS Point
         try:
             lng = float(coordinates[0])
             lat = float(coordinates[1])
