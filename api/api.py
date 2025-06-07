@@ -222,7 +222,7 @@ def create_team(request, payload: TeamCreate):
 
     except Exception as e:
         import traceback
-        print("🔥 create_team error:", traceback.format_exc())
+        logger.error("🔥 create_team error: %s", traceback.format_exc())
         raise HttpError(500, f"Failed to create team: {str(e)}")
 
 
