@@ -6,8 +6,7 @@ from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
-from ninja.errors import HttpError
-
+from ninja.errors import HttpError, logger
 from .models import AdoptedArea, Team
 from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut
 from typing import List

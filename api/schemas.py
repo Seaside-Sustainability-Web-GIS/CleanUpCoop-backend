@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional, List, Dict, Any
+from django.contrib.gis.geos import Point
 from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from .models import Team
 
