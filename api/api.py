@@ -6,8 +6,7 @@ from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
-from ninja.errors import HttpError
-
+from ninja.errors import HttpError, logger
 from .models import AdoptedArea, Team
 from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut
 from typing import List
@@ -76,8 +75,6 @@ def get_user_from_token(token):
 def adopt_area(request, data: AdoptAreaInput):
     try:
         area_data = data.model_dump()
-
-        # Make sure 'location' is a dict and has 'coordinates'
         location_data = area_data.get("location")
         if not isinstance(location_data, dict) or "coordinates" not in location_data:
             return JsonResponse({"success": False, "message": "Invalid location format"}, status=400)
