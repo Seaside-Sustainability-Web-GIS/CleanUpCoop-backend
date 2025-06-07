@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any
 from django.contrib.gis.geos import Point
 from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from .models import Team
+from geojson_pydantic import Point as GeoJSONPoint
 
 
 # 🔹 Used for adopting an area
@@ -13,7 +14,7 @@ class AdoptAreaInput(BaseModel):
     adoption_type: str = Field(..., pattern="^(indefinite|temporary)$")
     end_date: Optional[date] = None
     note: str = Field('', max_length=500)
-    location: Dict[str, Any]
+    location: GeoJSONPoint
     city: str
     state: str
     country: str
@@ -31,13 +32,14 @@ class AdoptAreaInput(BaseModel):
         return v
 
 
+
 # 🔹 Used to display adopted areas on the map
 class AdoptAreaLayer(BaseModel):
     id: int
     area_name: str
     adoptee_name: str
     email: EmailStr
-    location: Dict[str, Any]
+    location: GeoJSONPoint
     city: str
     state: str
     country: str
@@ -48,7 +50,7 @@ class AdoptAreaLayer(BaseModel):
 class TeamCreate(BaseModel):
     name: str
     description: str
-    headquarters: Dict[str, Any]
+    headquarters: GeoJSONPoint
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
@@ -59,7 +61,7 @@ class TeamOut(BaseModel):
     id: int
     name: str
     description: str
-    headquarters: Dict[str, Any]
+    headquarters: GeoJSONPoint
     leader_ids: List[int]
     member_ids: List[int]
 
@@ -71,10 +73,10 @@ class TeamOut(BaseModel):
             id=team.id,
             name=team.name,
             description=team.description,
-            headquarters={
-                "type": "Point",
-                "coordinates": [team.headquarters.x, team.headquarters.y]
-            } if team.headquarters else None,
+            headquarters=GeoJSONPoint(
+                coordinates=[team.headquarters.x, team.headquarters.y],
+                type="Point"
+            ) if team.headquarters else None,
             leader_ids=list(team.leaders.values_list('id', flat=True)),
             member_ids=list(team.members.values_list('id', flat=True)),
         )

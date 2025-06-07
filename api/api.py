@@ -75,8 +75,6 @@ def get_user_from_token(token):
 def adopt_area(request, data: AdoptAreaInput):
     try:
         area_data = data.model_dump()
-
-        # Make sure 'location' is a dict and has 'coordinates'
         location_data = area_data.get("location")
         if not isinstance(location_data, dict) or "coordinates" not in location_data:
             return JsonResponse({"success": False, "message": "Invalid location format"}, status=400)
