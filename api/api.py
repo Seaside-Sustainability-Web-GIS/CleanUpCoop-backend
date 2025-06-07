@@ -1,5 +1,4 @@
 import functools
-
 from django.contrib.gis.geos import Point
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
@@ -7,6 +6,8 @@ from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
+from ninja.errors import HttpError
+
 from .models import AdoptedArea, Team
 from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut
 from typing import List
@@ -160,8 +161,9 @@ def delete_adopted_area(request, area_id: int):
 
 
 @api.get("/teams/", response=List[TeamOut], tags=["Teams"])
-def list_teams():
-    return Team.objects.all()
+def list_teams(request):
+    teams = Team.objects.all()
+    return [TeamOut.from_team(team) for team in teams]
 
 
 @api.get("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
@@ -202,14 +204,26 @@ def delete_team(request, team_id: int):
 @api.post("/teams/", response=TeamOut, tags=["Teams"])
 @require_auth
 def create_team(request, payload: TeamCreate):
-    team = Team.objects.create(
-        name=payload.name,
-        description=payload.description,
-        headquarters=payload.headquarters
-    )
-    team.leaders.add(request.user)
-    team.members.add(request.user)
-    return team
+    try:
+        lng, lat = payload.headquarters["coordinates"]
+
+        team = Team.objects.create(
+            name=payload.name,
+            description=payload.description,
+            headquarters=Point(lng, lat),
+            city=payload.city or "",
+            state=payload.state or "",
+            country=payload.country,
+        )
+        team.leaders.add(request.user)
+        team.members.add(request.user)
+
+        return TeamOut.from_team(team)
+
+    except Exception as e:
+        import traceback
+        print("🔥 create_team error:", traceback.format_exc())
+        raise HttpError(500, f"Failed to create team: {str(e)}")
 
 
 @api.post("/teams/{team_id}/join", tags=["Teams"])
