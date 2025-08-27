@@ -1,6 +1,7 @@
 import functools
-from django.contrib.gis.geos import Point
-from django.core.exceptions import PermissionDenied
+import json
+from geojson_pydantic import Point
+from django.contrib.gis.geos import GEOSGeometry
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
@@ -8,7 +9,7 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
 from ninja.errors import HttpError, logger
 from .models import AdoptedArea, Team
-from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut
+from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut, LeaderRequest
 from typing import List
 
 User = get_user_model()
@@ -16,7 +17,7 @@ User = get_user_model()
 api = NinjaAPI(
     csrf=False,
     title="Seaside Sustainability WebGIS API",
-    description="Endpoints for user authentication, registration, and password management."
+    description="API for managing adopted areas and teams in the Seaside Sustainability WebGIS application.",
 )
 
 
@@ -34,8 +35,8 @@ def require_auth(view_func):
 
 
 def require_team_leader(user, team):
-    if team.leader != user:
-        raise PermissionDenied("You are not the leader of this team.")
+    if user not in team.leaders.all():
+        return JsonResponse({"success": False, "message": "You are not a team leader"}, status=403)
 
 
 # -------------------- Helper: Resolve user from session token --------------------
@@ -160,14 +161,34 @@ def delete_adopted_area(request, area_id: int):
 
 @api.get("/teams/", response=List[TeamOut], tags=["Teams"])
 def list_teams(request):
-    teams = Team.objects.all()
-    return [TeamOut.from_team(team) for team in teams]
+    return [
+        TeamOut(
+            id=team.id,
+            name=team.name,
+            description=team.description,
+            headquarters=Point(**json.loads(team.headquarters.geojson)),
+            city=team.city,
+            state=team.state,
+            country=team.country,
+            member_ids=list(team.members.values_list("id", flat=True)),
+            leader_ids=list(team.leaders.values_list("id", flat=True)),
+        )
+        for team in Team.objects.all()
+    ]
 
 
 @api.get("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
-def get_team(team_id: int):
+def get_team(request, team_id: int):
     team = get_object_or_404(Team, id=team_id)
-    return team
+    return TeamOut(
+        id=team.id,
+        name=team.name,
+        description=team.description,
+        headquarters=Point(**json.loads(team.headquarters.geojson)),
+        city=team.city,
+        state=team.state,
+        country=team.country,
+    )
 
 
 @api.put("/teams/{team_id}/", response=TeamOut, tags=["Teams"])
@@ -202,26 +223,30 @@ def delete_team(request, team_id: int):
 @api.post("/teams/", response=TeamOut, tags=["Teams"])
 @require_auth
 def create_team(request, payload: TeamCreate):
-    try:
-        lng, lat = payload.headquarters["coordinates"]
+    geojson = payload.headquarters
+    django_point = GEOSGeometry(json.dumps(geojson))
 
-        team = Team.objects.create(
-            name=payload.name,
-            description=payload.description,
-            headquarters=Point(lng, lat),
-            city=payload.city or "",
-            state=payload.state or "",
-            country=payload.country,
-        )
-        team.leaders.add(request.user)
-        team.members.add(request.user)
-
-        return TeamOut.from_team(team)
-
-    except Exception as e:
-        import traceback
-        logger.error("🔥 create_team error: %s", traceback.format_exc())
-        raise HttpError(500, f"Failed to create team: {str(e)}")
+    team = Team.objects.create(
+        name=payload.name,
+        description=payload.description,
+        headquarters=django_point,
+        city=payload.city,
+        state=payload.state,
+        country=payload.country
+    )
+    team.members.add(request.user)
+    team.leaders.add(request.user)
+    return TeamOut(
+        id=team.id,
+        name=team.name,
+        description=team.description,
+        headquarters=json.loads(team.headquarters.geojson),
+        city=team.city,
+        state=team.state,
+        country=team.country,
+        member_ids=list(team.members.values_list("id", flat=True)),
+        leader_ids=list(team.leaders.values_list("id", flat=True)),
+    )
 
 
 @api.post("/teams/{team_id}/join", tags=["Teams"])
@@ -239,3 +264,46 @@ def leave_team(request, team_id: int):
     team.members.remove(request.user)
     team.leaders.remove(request.user)
     return {"success": True}
+
+
+def is_team_leader(user, team: Team):
+    return user in team.leaders.all()
+
+
+@api.post("/teams/{team_id}/add_leader/", tags=["Teams"])
+@require_auth
+def add_leader(request, team_id: int, payload: LeaderRequest):
+    team = get_object_or_404(Team, id=team_id)
+
+    if not is_team_leader(request.user, team):
+        raise HttpError(403, "Only team leaders can add other leaders.")
+
+    if team.leaders.count() >= 5:
+        raise HttpError(400, "Maximum number of team leaders reached.")
+
+    user = get_object_or_404(User, id=payload.user_id)
+
+    if user not in team.members.all():
+        raise HttpError(400, "User must be a team member before becoming a leader.")
+
+    team.leaders.add(user)
+    return {"success": True, "message": f"{user.username} is now a team leader."}
+
+
+@api.post("/teams/{team_id}/remove_leader/", tags=["Teams"])
+def remove_leader(request, team_id: int, payload: LeaderRequest):
+    team = get_object_or_404(Team, id=team_id)
+
+    if not is_team_leader(request.user, team):
+        raise HttpError(403, "Only team leaders can remove leaders.")
+
+    user = get_object_or_404(User, id=payload.user_id)
+
+    if user not in team.leaders.all():
+        raise HttpError(400, "User is not a leader.")
+
+    if team.leaders.count() == 1:
+        raise HttpError(400, "Cannot remove the last remaining team leader.")
+
+    team.leaders.remove(user)
+    return {"success": True, "message": f"{user.username} is no longer a team leader."}

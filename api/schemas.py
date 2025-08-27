@@ -1,8 +1,8 @@
 from datetime import date
-from typing import Optional, List, Dict, Any
-from django.contrib.gis.geos import Point
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
-from .models import Team
+from typing import Optional, List
+from ninja import Schema
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from geojson_pydantic import Point
 
 
 # 🔹 Used for adopting an area
@@ -13,22 +13,14 @@ class AdoptAreaInput(BaseModel):
     adoption_type: str = Field(..., pattern="^(indefinite|temporary)$")
     end_date: Optional[date] = None
     note: str = Field('', max_length=500)
-    location: Dict[str, Any]
+    location: Point
     city: str
     state: str
     country: str
 
-    @field_validator("location")
-    def validate_location_coordinates(cls, v: Point):
-        coords = v.coordinates
-        if not isinstance(coords, (list, tuple)) or len(coords) != 2:
-            raise ValueError("Coordinates must be a [lng, lat] pair")
-        lng, lat = coords
-        if lng is None or lat is None:
-            raise ValueError("Coordinates cannot be null")
-        if not all(isinstance(c, (float, int)) for c in coords):
-            raise ValueError("Coordinates must be numbers")
-        return v
+    @field_validator("end_date", mode="before")
+    def blank_string_to_none(cls, v):
+        return None if v in ("", None) else v
 
 
 # 🔹 Used to display adopted areas on the map
@@ -37,7 +29,7 @@ class AdoptAreaLayer(BaseModel):
     area_name: str
     adoptee_name: str
     email: EmailStr
-    location: Dict[str, Any]
+    location: Point
     city: str
     state: str
     country: str
@@ -45,36 +37,26 @@ class AdoptAreaLayer(BaseModel):
 
 
 # 🔹 Used to create a team
-class TeamCreate(BaseModel):
+class TeamCreate(Schema):
     name: str
     description: str
-    headquarters: Dict[str, Any]
-    city: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
+    headquarters: dict  # GeoJSON Point
+    city: str = ""
+    state: str = ""
+    country: str = ""
 
-
-# 🔹 Used to return team details
 class TeamOut(BaseModel):
     id: int
     name: str
     description: str
-    headquarters: Dict[str, Any]
-    leader_ids: List[int]
+    headquarters: Point
+    city: str
+    state: str
+    country: str
     member_ids: List[int]
+    leader_ids: List[int]
 
-    model_config = ConfigDict(from_attributes=True)
 
-    @classmethod
-    def from_team(cls, team: Team) -> "TeamOut":
-        return cls(
-            id=team.id,
-            name=team.name,
-            description=team.description,
-            headquarters={
-                "type": "Point",
-                "coordinates": [team.headquarters.x, team.headquarters.y]
-            } if team.headquarters else None,
-            leader_ids=list(team.leaders.values_list('id', flat=True)),
-            member_ids=list(team.members.values_list('id', flat=True)),
-        )
+# 🔹 Used to request a user to become a team leader
+class LeaderRequest(Schema):
+    user_id: int
