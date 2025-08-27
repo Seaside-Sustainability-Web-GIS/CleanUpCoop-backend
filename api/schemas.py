@@ -1,8 +1,8 @@
 from datetime import date
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
-from .models import Team
-from geojson_pydantic import Point as GeoJSONPoint
+from typing import Optional, List
+from ninja import Schema
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from geojson_pydantic import Point
 
 
 # 🔹 Used for adopting an area
@@ -13,7 +13,7 @@ class AdoptAreaInput(BaseModel):
     adoption_type: str = Field(..., pattern="^(indefinite|temporary)$")
     end_date: Optional[date] = None
     note: str = Field('', max_length=500)
-    location: GeoJSONPoint
+    location: Point
     city: str
     state: str
     country: str
@@ -23,14 +23,13 @@ class AdoptAreaInput(BaseModel):
         return None if v in ("", None) else v
 
 
-
 # 🔹 Used to display adopted areas on the map
 class AdoptAreaLayer(BaseModel):
     id: int
     area_name: str
     adoptee_name: str
     email: EmailStr
-    location: GeoJSONPoint
+    location: Point
     city: str
     state: str
     country: str
@@ -38,36 +37,26 @@ class AdoptAreaLayer(BaseModel):
 
 
 # 🔹 Used to create a team
-class TeamCreate(BaseModel):
+class TeamCreate(Schema):
     name: str
     description: str
-    headquarters: GeoJSONPoint
-    city: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
+    headquarters: dict  # GeoJSON Point
+    city: str = ""
+    state: str = ""
+    country: str = ""
 
-
-# 🔹 Used to return team details
 class TeamOut(BaseModel):
     id: int
     name: str
     description: str
-    headquarters: GeoJSONPoint
-    leader_ids: List[int]
+    headquarters: Point
+    city: str
+    state: str
+    country: str
     member_ids: List[int]
+    leader_ids: List[int]
 
-    model_config = ConfigDict(from_attributes=True)
 
-    @classmethod
-    def from_team(cls, team: Team) -> "TeamOut":
-        return cls(
-            id=team.id,
-            name=team.name,
-            description=team.description,
-            headquarters=GeoJSONPoint(
-                coordinates=[team.headquarters.x, team.headquarters.y],
-                type="Point"
-            ) if team.headquarters else None,
-            leader_ids=list(team.leaders.values_list('id', flat=True)),
-            member_ids=list(team.members.values_list('id', flat=True)),
-        )
+# 🔹 Used to request a user to become a team leader
+class LeaderRequest(Schema):
+    user_id: int
