@@ -7,7 +7,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0006_remove_adoptedarea_lat_remove_adoptedarea_lng_team'),
+        ('api', '0007_remove_adoptedarea_lat_remove_adoptedarea_lng_team'),
     ]
 
     operations = [
