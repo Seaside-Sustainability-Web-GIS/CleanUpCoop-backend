@@ -16,8 +16,8 @@ User = get_user_model()
 
 api = NinjaAPI(
     csrf=False,
-    title="Seaside Sustainability WebGIS API",
-    description="API for managing adopted areas and teams in the Seaside Sustainability WebGIS application.",
+    title="Clean up Co-op WebGIS API",
+    description="API for managing adopted areas and teams in the Clean up Co-op WebGIS application.",
 )
 
 
