@@ -26,7 +26,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['ALLOWED_HOSTS']
+ALLOWED_HOSTS = ['cleanupcoop-backend.onrender.com']
 
 # Session settings
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
@@ -38,7 +38,9 @@ SESSION_COOKIE_SECURE = True
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = ['CORS_ALLOWED_ORIGINS']
+CORS_ALLOWED_ORIGINS = [
+    "https://cleanupcoop-frontend.onrender.com",
+]
 CORS_ALLOW_HEADERS = [
     "Content-Type",
     "Authorization",
