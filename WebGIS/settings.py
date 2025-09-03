@@ -112,9 +112,9 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "https://cleanupcoop-frontend.onrender.com/verify-email/{key}",
-    "account_reset_password_from_key": "https://cleanupcoop-frontend.onrender.com/reset-password/key/{key}",
-    "account_signup": "https://cleanupcoop-frontend.onrender.com/",
+    "account_confirm_email": "https://cleanupcoop.org/verify-email/{key}",
+    "account_reset_password_from_key": "https://cleanupcoop.org/reset-password/key/{key}",
+    "account_signup": "https://cleanupcoop.org/",
 }
 
 ROOT_URLCONF = 'WebGIS.urls'
