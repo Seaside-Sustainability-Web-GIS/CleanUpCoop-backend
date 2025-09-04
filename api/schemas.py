@@ -1,24 +1,40 @@
 from datetime import date
-from typing import Optional, List
+from typing import Optional, List, Literal, Tuple
 from ninja import Schema
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from geojson_pydantic import Point
 
 
-# 🔹 Used for adopting an area
+class GeoJSONPoint(BaseModel):
+    type: Literal["Point"] = "Point"
+    coordinates: Tuple[float, float]
+
+    @field_validator("coordinates")
+    @classmethod
+    def validate_coords(cls, v):
+        if len(v) != 2:
+            raise ValueError("Coordinates must be [lng, lat].")
+        lng, lat = v
+        if not (-180 <= lng <= 180 and -90 <= lat <= 90):
+            raise ValueError("Coordinates out of range.")
+        return v
+
+
 class AdoptAreaInput(BaseModel):
     area_name: str = Field(..., max_length=100)
     adoptee_name: str = Field(..., max_length=100)
     email: EmailStr
-    adoption_type: str = Field(..., pattern="^(indefinite|temporary)$")
+    adoption_type: Literal["indefinite", "temporary"] = "indefinite"
     end_date: Optional[date] = None
-    note: str = Field('', max_length=500)
-    location: Point
+    is_active: bool = True
+    note: str = Field("", max_length=500)
+    location: GeoJSONPoint
     city: str
     state: str
     country: str
 
     @field_validator("end_date", mode="before")
+    @classmethod
     def blank_string_to_none(cls, v):
         return None if v in ("", None) else v
 
@@ -44,6 +60,7 @@ class TeamCreate(Schema):
     city: str = ""
     state: str = ""
     country: str = ""
+
 
 class TeamOut(BaseModel):
     id: int

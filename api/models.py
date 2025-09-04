@@ -42,7 +42,7 @@ class AdoptedArea(models.Model):
     end_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     note = models.TextField(blank=True)
-    location = gis_models.PointField()
+    location = gis_models.PointField(srid=4326)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
