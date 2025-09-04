@@ -110,7 +110,7 @@ def adopt_area(request, data: AdoptAreaInput):
             status=201,
         )
 
-        # Provide a more user-friendly and specific error message
+    except ValueError as ve:
         error_msg = str(ve)
         if "coordinates" in error_msg:
             user_msg = "Location coordinates are invalid or missing. Please provide valid longitude and latitude."
