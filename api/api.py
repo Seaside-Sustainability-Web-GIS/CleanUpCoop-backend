@@ -113,8 +113,6 @@ def adopt_area(request, data: AdoptAreaInput):
     except ValueError as ve:
         return JsonResponse({"success": False, "message": f"Invalid data: {ve}"}, status=400)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return JsonResponse(
             {"success": False, "message": f"Failed to save area: {str(e)}"},
             status=500,
