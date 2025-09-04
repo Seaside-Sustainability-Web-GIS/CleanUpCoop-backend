@@ -110,8 +110,17 @@ def adopt_area(request, data: AdoptAreaInput):
             status=201,
         )
 
-    except ValueError as ve:
-        return JsonResponse({"success": False, "message": f"Invalid data: {ve}"}, status=400)
+        # Provide a more user-friendly and specific error message
+        error_msg = str(ve)
+        if "coordinates" in error_msg:
+            user_msg = "Location coordinates are invalid or missing. Please provide valid longitude and latitude."
+        elif "email" in error_msg:
+            user_msg = "Email address is invalid. Please provide a valid email."
+        elif "end_date" in error_msg:
+            user_msg = "End date is invalid or missing for temporary adoption."
+        else:
+            user_msg = f"Invalid input data: {error_msg}" if error_msg else "Invalid input data. Please check your submission and try again."
+        return JsonResponse({"success": False, "message": user_msg}, status=400)
     except Exception as e:
         return JsonResponse(
             {"success": False, "message": f"Failed to save area: {str(e)}"},
