@@ -9,8 +9,7 @@ from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
-from ninja.errors import HttpError
-
+from ninja.errors import HttpError, logger
 from .models import AdoptedArea, Team
 from .schemas import AdoptAreaInput, AdoptAreaLayer, TeamCreate, TeamOut, LeaderRequest
 from typing import List
@@ -19,8 +18,8 @@ User = get_user_model()
 
 api = NinjaAPI(
     csrf=False,
-    title="Seaside Sustainability WebGIS API",
-    description="API for managing adopted areas and teams in the Seaside Sustainability WebGIS application.",
+    title="Clean up Co-op WebGIS API",
+    description="API for managing adopted areas and teams in the Clean up Co-op WebGIS application.",
 )
 
 
@@ -78,11 +77,25 @@ def get_user_from_token(token):
 @require_auth
 def adopt_area(request, data: AdoptAreaInput):
     try:
-        if data.adoption_type == "temporary" and not data.end_date:
-            return JsonResponse(
-                {"success": False, "message": "end_date is required for temporary adoption."},
-                status=400,
-            )
+        area_data = data.model_dump()
+
+        # Make sure 'location' is a dict and has 'coordinates'
+        location_data = area_data.get("location")
+        if not isinstance(location_data, dict) or "coordinates" not in location_data:
+            return JsonResponse({"success": False, "message": "Invalid location format"}, status=400)
+
+        coordinates = location_data["coordinates"]
+        if not isinstance(coordinates, (list, tuple)) or len(coordinates) != 2:
+            return JsonResponse({"success": False, "message": "Coordinates must be [lng, lat]"}, status=400)
+
+        try:
+            lng = float(coordinates[0])
+            lat = float(coordinates[1])
+            area_data["location"] = Point(lng, lat)
+        except ValueError:
+            return JsonResponse({"success": False, "message": "Coordinates must be valid numbers"}, status=400)
+
+        area_data["user"] = request.user
 
         lng, lat = data.location.coordinates
         point = GEOSGeometry(f'POINT({lng} {lat})', srid=4326)

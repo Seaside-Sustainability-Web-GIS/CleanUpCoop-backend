@@ -12,9 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +26,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add your production domain here
+ALLOWED_HOSTS = ['cleanupcoop-backend.onrender.com']
 
 # Session settings
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
@@ -41,7 +39,7 @@ SESSION_COOKIE_SECURE = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "https://cleanupcoop-frontend.onrender.com",
 ]
 CORS_ALLOW_HEADERS = [
     "Content-Type",
@@ -50,14 +48,14 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # Security settings
-# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-# USE_X_FORWARDED_HOST = True
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# SECURE_SSL_REDIRECT = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SECURE_BROWSER_XSS_FILTER = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
 
 # Application definition
 
@@ -114,9 +112,9 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "http://localhost:5173/verify-email/{key}",
-    "account_reset_password_from_key": "http://localhost:5173/reset-password/key/{key}",
-    "account_signup": "http://localhost:5173/",
+    "account_confirm_email": "https://cleanupcoop.org/verify-email/{key}",
+    "account_reset_password_from_key": "https://cleanupcoop.org/reset-password/key/{key}",
+    "account_signup": "https://cleanupcoop.org/",
 }
 
 ROOT_URLCONF = 'WebGIS.urls'
@@ -142,14 +140,11 @@ WSGI_APPLICATION = 'WebGIS.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('POSTGRES_ENGINE'),
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+        **dj_database_url.config(default=os.getenv('DATABASE_URL')),
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
     }
 }
 
@@ -187,8 +182,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files
 MEDIA_URL = '/media/'
