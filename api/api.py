@@ -1,5 +1,7 @@
 import functools
 import json
+
+from django.db import transaction
 from geojson_pydantic import Point
 from django.contrib.gis.geos import GEOSGeometry
 from django.http import JsonResponse
@@ -95,13 +97,48 @@ def adopt_area(request, data: AdoptAreaInput):
 
         area_data["user"] = request.user
 
-        # Save to DB
-        AdoptedArea.objects.create(**area_data)
+        lng, lat = data.location.coordinates
+        point = GEOSGeometry(f'POINT({lng} {lat})', srid=4326)
 
-        return JsonResponse({"success": True, "message": "Area adopted successfully!"}, status=201)
+        payload = {
+            "user": request.user,
+            "area_name": data.area_name.strip(),
+            "adoptee_name": data.adoptee_name.strip(),
+            "email": str(data.email),
+            "adoption_type": data.adoption_type,
+            "end_date": data.end_date,
+            "is_active": data.is_active,
+            "note": data.note.strip(),
+            "location": point,
+            "city": data.city.strip(),
+            "state": data.state.strip(),
+            "country": data.country.strip(),
+        }
 
+        with transaction.atomic():
+            obj = AdoptedArea.objects.create(**payload)
+
+        return JsonResponse(
+            {"success": True, "message": "Area adopted successfully!", "id": obj.id},
+            status=201,
+        )
+
+    except ValueError as ve:
+        error_msg = str(ve)
+        if "coordinates" in error_msg:
+            user_msg = "Location coordinates are invalid or missing. Please provide valid longitude and latitude."
+        elif "email" in error_msg:
+            user_msg = "Email address is invalid. Please provide a valid email."
+        elif "end_date" in error_msg:
+            user_msg = "End date is invalid or missing for temporary adoption."
+        else:
+            user_msg = f"Invalid input data: {error_msg}" if error_msg else "Invalid input data. Please check your submission and try again."
+        return JsonResponse({"success": False, "message": user_msg}, status=400)
     except Exception as e:
-        return JsonResponse({"success": False, "message": f"Failed to save area: {str(e)}"}, status=500)
+        return JsonResponse(
+            {"success": False, "message": f"Failed to save area: {str(e)}"},
+            status=500,
+        )
 
 
 @api.get("/adopted-area-layer/", response=List[AdoptAreaLayer], tags=["Adopt Area"])
@@ -139,8 +176,26 @@ def update_adopted_area(request, area_id: int, data: AdoptAreaInput):
     except AdoptedArea.DoesNotExist:
         return JsonResponse({"success": False, "message": "Adopted area not found"}, status=404)
 
-    for field, value in data.model_dump().items():
-        setattr(area, field, value)
+    if data.adoption_type == "temporary" and not data.end_date:
+        return JsonResponse(
+            {"success": False, "message": "end_date is required for temporary adoption."},
+            status=400,
+        )
+
+    lng, lat = data.location.coordinates
+    location_point = GEOSGeometry(f'POINT({lng} {lat})', srid=4326)
+
+    area.area_name = data.area_name.strip()
+    area.adoptee_name = data.adoptee_name.strip()
+    area.email = str(data.email)
+    area.adoption_type = data.adoption_type
+    area.end_date = data.end_date
+    area.is_active = data.is_active
+    area.note = data.note.strip()
+    area.location = location_point
+    area.city = data.city.strip()
+    area.state = data.state.strip()
+    area.country = data.country.strip()
     area.save()
 
     return JsonResponse({"success": True, "message": "Adopted area updated successfully!"})
